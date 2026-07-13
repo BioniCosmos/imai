@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>maimai Data — 舞萌 DX 数据助手</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #fafaf8;
+        --surface: #f2f1ee;
+        --border: #e4e3de;
+        --text: #1c1c1c;
+        --muted: #8a8880;
+        --accent: #2eb8a6;
+        --accent2: #6b6db8;
+        --warn: #d4786e;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family:
+          'PingFang SC',
+          'Hiragino Sans GB',
+          'Noto Sans CJK SC',
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── HERO ──────────────────────────────────────────── */
+      .hero {
+        padding: 140px 40px 100px;
+        text-align: center;
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      .hero-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        margin-bottom: 40px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+      }
+      .hero h1 {
+        font-size: 52px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        color: var(--text);
+      }
+      .hero h1 em {
+        font-style: normal;
+        color: var(--accent);
+      }
+      .hero .sub {
+        font-size: 18px;
+        color: var(--muted);
+        margin-top: 16px;
+      }
+      .hero .meta {
+        display: flex;
+        gap: 24px;
+        justify-content: center;
+        margin-top: 36px;
+        font-size: 14px;
+        color: var(--muted);
+        letter-spacing: 0.02em;
+      }
+      .hero .meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .hero .meta .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .dot-teal {
+        background: var(--accent);
+      }
+      .dot-purple {
+        background: var(--accent2);
+      }
+      .dot-red {
+        background: var(--warn);
+      }
+
+      /* ── SECTION ────────────────────────────────────────── */
+      section {
+        padding: 0 40px;
+      }
+      .section-inner {
+        max-width: 1080px;
+        margin: 0 auto;
+      }
+
+      /* ── FEATURE ROW ────────────────────────────────────── */
+      .feature-row {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 80px;
+        align-items: center;
+        padding: 56px 0;
+        border-top: 1px solid var(--border);
+      }
+      .feature-row:first-of-type {
+        border-top: none;
+      }
+
+      .feature-text .num {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+        margin-bottom: 24px;
+      }
+      .feature-text h2 {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 12px;
+      }
+      .feature-text p {
+        font-size: 16px;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .feature-image {
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.04),
+          0 4px 24px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        background: var(--surface);
+        max-width: 320px;
+        justify-self: center;
+      }
+      .feature-image img {
+        width: 100%;
+        display: block;
+      }
+
+      /* Alternate text/image position */
+      .feature-row.reverse .feature-text {
+        order: 2;
+      }
+      .feature-row.reverse .feature-image {
+        order: 1;
+      }
+
+      /* ── CTA ────────────────────────────────────────────── */
+      .cta {
+        padding: 100px 40px;
+        text-align: center;
+        border-top: 1px solid var(--border);
+        margin-top: 20px;
+      }
+      .cta h2 {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+      }
+      .cta p {
+        font-size: 16px;
+        color: var(--muted);
+        margin-bottom: 32px;
+      }
+      .cta-btns {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        border-radius: 100px;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        letter-spacing: 0.01em;
+        transition: all 0.2s;
+      }
+      .btn-dark {
+        background: var(--text);
+        color: #fff;
+      }
+      .btn-dark:hover {
+        background: #333;
+        transform: translateY(-1px);
+      }
+      .btn-line {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      .btn-line:hover {
+        border-color: #aaa;
+        background: var(--surface);
+      }
+
+      /* ── FOOTER ─────────────────────────────────────────── */
+      footer {
+        text-align: center;
+        padding: 40px;
+        color: var(--muted);
+        font-size: 13px;
+        border-top: 1px solid var(--border);
+      }
+      footer span {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* ── RESPONSIVE ─────────────────────────────────────── */
+      @media (max-width: 768px) {
+        .hero {
+          padding: 100px 24px 60px;
+        }
+        .hero h1 {
+          font-size: 36px;
+        }
+        .feature-row {
+          grid-template-columns: 1fr;
+          gap: 28px;
+          padding: 40px 0;
+        }
+        .feature-row.reverse .feature-text {
+          order: 1;
+        }
+        .feature-row.reverse .feature-image {
+          order: 2;
+        }
+        .feature-image {
+          max-width: 260px;
+        }
+        section {
+          padding: 0 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HERO -->
+    <header class="hero">
+      <img
+        class="hero-icon"
+        src="icon.png"
+        alt="maimai Data"
+        onerror="this.style.display = 'none'"
+      />
+      <h1>maimai <em>Data</em></h1>
+      <p class="sub">舞萌 DX 数据助手 — 曲库查询、成绩追踪、Rating 评分</p>
+      <div class="meta">
+        <span><i class="dot dot-teal"></i> iOS · SwiftUI</span>
+        <span><i class="dot dot-purple"></i> 曲库数据</span>
+        <span><i class="dot dot-red"></i> Rating</span>
+      </div>
+    </header>
+
+    <!-- FEATURES -->
+    <section>
+      <div class="section-inner">
+        <div class="feature-row">
+          <div class="feature-text">
+            <div class="num">01 / 曲库浏览</div>
+            <h2>浏览全部歌曲</h2>
+            <p>
+              完整的舞萌曲库，支持按关键词、版本、流派、难度等多维度筛选。匹配别名与谱师信息，快速找到你想要的歌曲。
+            </p>
+          </div>
+          <div class="feature-image">
+            <img src="00.png" alt="曲库浏览" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="feature-row reverse">
+          <div class="feature-text">
+            <div class="num">02 / 歌曲详情</div>
+            <h2>谱面数据与成绩</h2>
+            <p>
+              查看每首歌的全部谱面信息，包括定数、难度分布与谱师。记录个人最佳成绩，追踪每一次进步。
+            </p>
+          </div>
+          <div class="feature-image">
+            <img src="01.png" alt="歌曲详情" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="feature-row">
+          <div class="feature-text">
+            <div class="num">03 / 智能筛选</div>
+            <h2>精准过滤，快速定位</h2>
+            <p>
+              按版本、难度、流派、定数范围自由组合筛选条件。支持收藏夹过滤，只看你关心的歌曲。
+            </p>
+          </div>
+          <div class="feature-image">
+            <img src="02.png" alt="智能筛选" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="feature-row reverse">
+          <div class="feature-text">
+            <div class="num">04 / 等级进度</div>
+            <h2>追踪完成情况</h2>
+            <p>
+              按难度等级分组展示每一首歌曲的完成状态。SSS、FC、AP、FSD
+              一目了然，轻松定位未完成的曲目。
+            </p>
+          </div>
+          <div class="feature-image">
+            <img src="03.png" alt="等级进度" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="feature-row">
+          <div class="feature-text">
+            <div class="num">05 / Rating 评分</div>
+            <h2>了解真实实力</h2>
+            <p>
+              基于官方算法计算 Rating
+              值，按版本追踪分数变化趋势。细分基础分与段位分，精准评估你的水平。
+            </p>
+          </div>
+          <div class="feature-image">
+            <img src="04.png" alt="Rating" loading="lazy" />
+          </div>
+        </div>
+
+        <div class="feature-row reverse">
+          <div class="feature-text">
+            <div class="num">06 / 数据同步</div>
+            <h2>多设备无缝衔接</h2>
+            <p>
+              登录账号即可同步个人数据。支持从官方服务拉取最新成绩，数据始终与你的游戏进度保持同步。
+            </p>
+          </div>
+          <div class="feature-image">
+            <img src="05.png" alt="数据同步" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="cta">
+      <h2>开启舞萌数据之旅</h2>
+      <p>在 App Store 下载 maimai Data</p>
+      <div class="cta-btns">
+        <a href="#" class="btn btn-dark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 21.99 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 21.99C7.79 22.03 6.8 20.68 5.96 19.47C4.25 16.97 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"
+            />
+          </svg>
+          App Store
+        </a>
+        <a href="https://github.com" class="btn btn-line" target="_blank">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12Z"
+            />
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+
+    <footer>
+      <p>© 2026 <span>maimai Data</span> · 舞萌 DX 数据助手</p>
+    </footer>
+  </body>
+</html>
