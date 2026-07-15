@@ -102,18 +102,20 @@ final class DataManager: ObservableObject {
 
     func maxNotes() throws -> MaxNotesStats? {
         let charts = try mainContext.fetch(FetchDescriptor<Chart>())
-        let maxTap = charts.map(\.notesTap).max() ?? 0
-        let maxHold = charts.map(\.notesHold).max() ?? 0
-        let maxSlide = charts.map(\.notesSlide).max() ?? 0
-        let maxTouch = charts.map(\.notesTouch).max() ?? 0
-        let maxBreak = charts.map(\.notesBreak).max() ?? 0
+        let maxes = charts.reduce(into: (tap: 0, hold: 0, slide: 0, touch: 0, break_: 0)) { result, chart in
+            result.tap = max(result.tap, chart.notesTap)
+            result.hold = max(result.hold, chart.notesHold)
+            result.slide = max(result.slide, chart.notesSlide)
+            result.touch = max(result.touch, chart.notesTouch)
+            result.break_ = max(result.break_, chart.notesBreak)
+        }
         return MaxNotesStats(
-            tap: maxTap,
-            hold: maxHold,
-            slide: maxSlide,
-            touch: maxTouch,
-            break_: maxBreak,
-            total: maxTap + maxHold + maxSlide + maxTouch + maxBreak
+            tap: maxes.tap,
+            hold: maxes.hold,
+            slide: maxes.slide,
+            touch: maxes.touch,
+            break_: maxes.break_,
+            total: maxes.tap + maxes.hold + maxes.slide + maxes.touch + maxes.break_
         )
     }
 
@@ -155,19 +157,15 @@ final class DataManager: ObservableObject {
     /// to-many inverse relationships during `@Query` fetches.
     func aliasesAndCharts() throws -> (aliases: [Int: [String]], charts: [Int: [ChartSummary]]) {
         let aliases = try mainContext.fetch(FetchDescriptor<Alias>())
-        var aliasMap: [Int: [String]] = [:]
-        for alias in aliases {
-            aliasMap[alias.songId, default: []].append(alias.alias)
-        }
+        let aliasMap = aliases.reduce(into: [Int: [String]]()) { $0[$1.songId, default: []].append($1.alias) }
 
         let charts = try mainContext.fetch(FetchDescriptor<Chart>())
-        var chartMap: [Int: [ChartSummary]] = [:]
-        for chart in charts {
-            chartMap[chart.songId, default: []].append(ChartSummary(
-                level: chart.level,
-                ds: chart.ds,
-                difficultyType: chart.difficultyType,
-                charter: chart.charter
+        let chartMap = charts.reduce(into: [Int: [ChartSummary]]()) {
+            $0[$1.songId, default: []].append(ChartSummary(
+                level: $1.level,
+                ds: $1.ds,
+                difficultyType: $1.difficultyType,
+                charter: $1.charter
             ))
         }
 
@@ -178,11 +176,7 @@ final class DataManager: ObservableObject {
     /// by `ProberView` to split records into old (B35) and new (B15) sets.
     func isNewMap() throws -> [Int: Bool] {
         let songs = try mainContext.fetch(FetchDescriptor<SongData>())
-        var map: [Int: Bool] = [:]
-        for song in songs {
-            map[song.id] = song.isNew
-        }
-        return map
+        return songs.reduce(into: [Int: Bool]()) { $0[$1.id] = $1.isNew }
     }
 
     static func orderedVersions(from set: Set<String>) -> [String] {

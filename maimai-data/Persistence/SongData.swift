@@ -61,7 +61,7 @@ final class SongData {
 }
 
 extension SongData {
-    var bgColorName: String {
+    private var genreBase: String {
         switch genre {
         case "流行&动漫": return "pop"
         case "niconico & VOCALOID": return "vocal"
@@ -73,17 +73,8 @@ extension SongData {
         }
     }
 
-    var strokeColorName: String {
-        switch genre {
-        case "流行&动漫": return "pop_stroke"
-        case "niconico & VOCALOID": return "vocal_stroke"
-        case "东方Project": return "touhou_stroke"
-        case "其他游戏": return "variety_stroke"
-        case "舞萌": return "maimai_stroke"
-        case Constants.genreUtage: return "utage_stroke"
-        default: return "gekichuni_stroke"
-        }
-    }
+    var bgColorName: String { genreBase }
+    var strokeColorName: String { "\(genreBase)_stroke" }
 
     var jacketURL: URL? {
         URL(string: Constants.imageBaseURL + imageUrl)

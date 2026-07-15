@@ -69,13 +69,7 @@ struct WeChatUpdateView: View {
             ForEach(Array(difficultyNames.enumerated()), id: \.offset) { index, name in
                 Toggle(name, isOn: Binding(
                     get: { selectedDifficulties.contains(index) },
-                    set: { selected in
-                        if selected {
-                            selectedDifficulties.insert(index)
-                        } else {
-                            selectedDifficulties.remove(index)
-                        }
-                    }
+                    set: { selectedDifficulties.toggle(index, to: $0) }
                 ))
             }
         }
@@ -233,6 +227,16 @@ struct WeChatUpdateView: View {
                     state = .failed(error.localizedDescription)
                 }
             }
+        }
+    }
+}
+
+private extension Set {
+    mutating func toggle(_ element: Element, to selected: Bool) {
+        if selected {
+            insert(element)
+        } else {
+            remove(element)
         }
     }
 }

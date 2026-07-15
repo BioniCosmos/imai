@@ -147,24 +147,20 @@ impl WahlapClient {
 
             if let Some(location) = resp.headers().get("Location") {
                 let loc = location.to_str()?.to_string();
-                // Handle relative redirects.
-                if loc.starts_with('/') {
-                    let base = url::Url::parse(&current_url)?;
-                    current_url = format!(
-                        "{}://{}{}",
-                        base.scheme(),
-                        base.host_str().unwrap_or(""),
-                        loc
-                    );
-                } else {
-                    current_url = loc;
-                }
+                // Resolve relative redirects against the current URL.
+                current_url = match url::Url::parse(&loc) {
+                    Ok(abs) => abs.to_string(),
+                    Err(url::ParseError::RelativeUrlWithoutBase) => {
+                        let base = url::Url::parse(&current_url)?;
+                        base.join(&loc)?.to_string()
+                    }
+                    Err(e) => return Err(e.into()),
+                };
             } else {
                 debug!("[WAHLAP] No more redirects, login complete");
                 break;
             }
 
-            // Only follow 3xx redirects.
             if !status.is_redirection() {
                 break;
             }

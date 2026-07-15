@@ -132,22 +132,19 @@ async fn fetch_and_upload(db: &PgPool, task_id: Uuid, code: &str) -> Result<(), 
         set.spawn(async move {
             info!("[FETCH] Processing {} (diff={})", name, diff);
 
-            match fetch_and_upload_one(&client, &username, &password, diff, &name).await {
-                Ok(()) => crate::models::DifficultyResult {
-                    difficulty: diff,
-                    name,
-                    status: "success".into(),
-                    error: None,
-                },
-                Err(e) => {
-                    error!("[FETCH] {} failed: {:?}", name, e);
-                    crate::models::DifficultyResult {
-                        difficulty: diff,
-                        name,
-                        status: "failed".into(),
-                        error: Some(format!("{:?}", e)),
+            let (status, error) =
+                match fetch_and_upload_one(&client, &username, &password, diff, &name).await {
+                    Ok(()) => ("success", None),
+                    Err(e) => {
+                        error!("[FETCH] {} failed: {:?}", name, e);
+                        ("failed", Some(format!("{:?}", e)))
                     }
-                }
+                };
+            crate::models::DifficultyResult {
+                difficulty: diff,
+                name,
+                status: status.into(),
+                error,
             }
         });
     }

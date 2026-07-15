@@ -1,6 +1,10 @@
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 
+fn env_or(key: &str, default: &str) -> String {
+    std::env::var(key).unwrap_or_else(|_| default.into())
+}
+
 #[derive(Clone)]
 pub struct AppState {
     pub db: PgPool,
@@ -27,17 +31,11 @@ pub enum ProxyMode {
 
 impl ProxyMode {
     pub fn from_env() -> Result<Self, anyhow::Error> {
-        let mode = std::env::var("PROXY_MODE").unwrap_or_else(|_| "plaintext".into());
-        match mode.as_str() {
-            "tls" => {
-                let cert_path =
-                    std::env::var("PROXY_TLS_CERT").unwrap_or_else(|_| "cert.pem".into());
-                let key_path = std::env::var("PROXY_TLS_KEY").unwrap_or_else(|_| "key.pem".into());
-                Ok(Self::Tls {
-                    cert_path,
-                    key_path,
-                })
-            }
+        match env_or("PROXY_MODE", "plaintext").as_str() {
+            "tls" => Ok(Self::Tls {
+                cert_path: env_or("PROXY_TLS_CERT", "cert.pem"),
+                key_path: env_or("PROXY_TLS_KEY", "key.pem"),
+            }),
             _ => Ok(Self::Plaintext),
         }
     }
@@ -54,12 +52,9 @@ pub struct Config {
 impl Config {
     pub fn from_env() -> Result<Self, anyhow::Error> {
         Ok(Self {
-            database_url: std::env::var("DATABASE_URL")
-                .unwrap_or_else(|_| "postgres://localhost:5432/maimai_data".into()),
-            api_listen_addr: std::env::var("API_LISTEN_ADDR")
-                .unwrap_or_else(|_| "0.0.0.0:8080".into()),
-            proxy_listen_addr: std::env::var("PROXY_LISTEN_ADDR")
-                .unwrap_or_else(|_| "0.0.0.0:1080".into()),
+            database_url: env_or("DATABASE_URL", "postgres://localhost:5432/maimai_data"),
+            api_listen_addr: env_or("API_LISTEN_ADDR", "0.0.0.0:8080"),
+            proxy_listen_addr: env_or("PROXY_LISTEN_ADDR", "0.0.0.0:1080"),
             proxy_mode: ProxyMode::from_env()?,
         })
     }

@@ -42,7 +42,7 @@ async fn serve_plaintext(listener: TcpListener, state: Arc<AppState>) -> Result<
         let state = state.clone();
 
         tokio::spawn(async move {
-            if let Err(e) = socks5::handle_plaintext(stream, peer_addr, &state).await {
+            if let Err(e) = socks5::serve_socks5(stream, &state).await {
                 error!("SOCKS5 error from {}: {}", peer_addr, e);
             }
         });
@@ -69,7 +69,7 @@ async fn serve_tls(
         tokio::spawn(async move {
             match acceptor.accept(stream).await {
                 Ok(tls_stream) => {
-                    if let Err(e) = socks5::handle_tls(tls_stream, peer_addr, &state).await {
+                    if let Err(e) = socks5::serve_socks5(tls_stream, &state).await {
                         error!("SOCKS5 error from {}: {}", peer_addr, e);
                     }
                 }

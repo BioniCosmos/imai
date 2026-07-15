@@ -2,6 +2,12 @@ use anyhow::Context;
 use reqwest::Client;
 use tracing::info;
 
+fn client() -> &'static Client {
+    use std::sync::OnceLock;
+    static CLIENT: OnceLock<Client> = OnceLock::new();
+    CLIENT.get_or_init(|| Client::builder().build().expect("build reqwest client"))
+}
+
 /// Upload maimai score HTML to Diving-Fish pageparser API.
 /// Wraps the HTML with login credentials as the Android app does:
 /// `<login><u>{username}</u><p>{password}</p></login>{html}`
@@ -20,9 +26,7 @@ pub async fn upload_to_divingfish(
         body.len()
     );
 
-    let client = Client::builder().build()?;
-
-    let resp = client
+    let resp = client()
         .post("https://www.diving-fish.com/api/pageparser/page")
         .header("Content-Type", "text/plain")
         .body(body)

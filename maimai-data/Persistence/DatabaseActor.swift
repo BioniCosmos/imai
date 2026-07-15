@@ -39,10 +39,7 @@ actor DatabaseActor {
 
             let charts: [Chart] = dto.charts.enumerated().map { index, chart in
                 let difficultyType = DifficultyType.difficultyType(for: dto.basicInfo.genre, index: index)
-                let notes = chart.notes
-                let (tap, hold, slide, touch, breakNote) = dto.type == Constants.chartTypeSD
-                    ? (notes[safe: 0] ?? 0, notes[safe: 1] ?? 0, notes[safe: 2] ?? 0, 0, notes[safe: 3] ?? 0)
-                    : (notes[safe: 0] ?? 0, notes[safe: 1] ?? 0, notes[safe: 2] ?? 0, notes[safe: 3] ?? 0, notes[safe: 4] ?? 0)
+                let notes = NoteCounts(notes: chart.notes, isSD: dto.type == Constants.chartTypeSD)
 
                 let chartModel = Chart(
                     songId: songId,
@@ -52,12 +49,12 @@ actor DatabaseActor {
                     oldDs: dto.oldDs[safe: index],
                     level: dto.level[safe: index] ?? "",
                     charter: chart.charter,
-                    notesTap: tap,
-                    notesHold: hold,
-                    notesSlide: slide,
-                    notesTouch: touch,
-                    notesBreak: breakNote,
-                    notesTotal: notes.reduce(0, +)
+                    notesTap: notes.tap,
+                    notesHold: notes.hold,
+                    notesSlide: notes.slide,
+                    notesTouch: notes.touch,
+                    notesBreak: notes.breakNote,
+                    notesTotal: chart.notes.reduce(0, +)
                 )
                 chartModel.song = song
                 modelContext.insert(chartModel)
@@ -78,16 +75,17 @@ actor DatabaseActor {
     }
 
     func replaceAllRecords(with records: [Record]) async throws {
-        let existing = try modelContext.fetch(FetchDescriptor<Record>())
-        existing.forEach { modelContext.delete($0) }
-        records.forEach { modelContext.insert($0) }
-        try modelContext.save()
+        try replaceAll(with: records)
     }
 
     func replaceAllChartStats(with stats: [ChartStats]) async throws {
-        let existing = try modelContext.fetch(FetchDescriptor<ChartStats>())
-        existing.forEach { modelContext.delete($0) }
-        stats.forEach { modelContext.insert($0) }
+        try replaceAll(with: stats)
+    }
+
+    private func replaceAll<T: PersistentModel>(with models: [T]) throws {
+        let existing = try modelContext.fetch(FetchDescriptor<T>())
+        existing.forEach(modelContext.delete)
+        models.forEach(modelContext.insert)
         try modelContext.save()
     }
 }
@@ -95,6 +93,22 @@ actor DatabaseActor {
 private extension Array {
     subscript(safe index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil
+    }
+}
+
+private struct NoteCounts {
+    let tap: Int
+    let hold: Int
+    let slide: Int
+    let touch: Int
+    let breakNote: Int
+
+    init(notes: [Int], isSD: Bool) {
+        tap = notes[safe: 0] ?? 0
+        hold = notes[safe: 1] ?? 0
+        slide = notes[safe: 2] ?? 0
+        touch = isSD ? 0 : (notes[safe: 3] ?? 0)
+        breakNote = isSD ? (notes[safe: 3] ?? 0) : (notes[safe: 4] ?? 0)
     }
 }
 

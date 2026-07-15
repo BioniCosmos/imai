@@ -2,30 +2,26 @@ import SwiftUI
 
 /// Port of `FinaleToDxActivity` — converts between achievement percentage and
 /// DX score by entering note counts for each judgement type.
+struct NoteSectionState {
+    var perfect = ""
+    var great = ""
+    var good = ""
+    var miss = ""
+
+    var counts: (perfect: Int, great: Int, good: Int, miss: Int, total: Int) {
+        let p = Int(perfect) ?? 0
+        let g = Int(great) ?? 0
+        let gd = Int(good) ?? 0
+        let m = Int(miss) ?? 0
+        return (p, g, gd, m, p + g + gd + m)
+    }
+}
+
 struct FinaleToDxView: View {
-    // TAP
-    @State private var tapPerfect = ""
-    @State private var tapGreat = ""
-    @State private var tapGood = ""
-    @State private var tapMiss = ""
-
-    // HOLD
-    @State private var holdPerfect = ""
-    @State private var holdGreat = ""
-    @State private var holdGood = ""
-    @State private var holdMiss = ""
-
-    // SLIDE
-    @State private var slidePerfect = ""
-    @State private var slideGreat = ""
-    @State private var slideGood = ""
-    @State private var slideMiss = ""
-
-    // BREAK
-    @State private var breakPerfect = ""
-    @State private var breakGreat = ""
-    @State private var breakGood = ""
-    @State private var breakMiss = ""
+    @State private var tap = NoteSectionState()
+    @State private var hold = NoteSectionState()
+    @State private var slide = NoteSectionState()
+    @State private var breakNotes = NoteSectionState()
     @State private var breakScore = ""
 
     @State private var resultText: String?
@@ -34,56 +30,15 @@ struct FinaleToDxView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                noteSection(title: "TAP", icon: "circle.fill", color: .blue,
-                            perfect: $tapPerfect, great: $tapGreat, good: $tapGood, miss: $tapMiss)
+                noteSection(title: "TAP", icon: "circle.fill", color: .blue, state: $tap)
+                noteSection(title: "HOLD", icon: "rectangle.fill", color: .green, state: $hold)
+                noteSection(title: "SLIDE", icon: "star.fill", color: .orange, state: $slide)
+                noteSection(title: "BREAK", icon: "diamond.fill", color: .red, state: $breakNotes)
 
-                noteSection(title: "HOLD", icon: "rectangle.fill", color: .green,
-                            perfect: $holdPerfect, great: $holdGreat, good: $holdGood, miss: $holdMiss)
-
-                noteSection(title: "SLIDE", icon: "star.fill", color: .orange,
-                            perfect: $slidePerfect, great: $slideGreat, good: $slideGood, miss: $slideMiss)
-
-                noteSection(title: "BREAK", icon: "diamond.fill", color: .red,
-                            perfect: $breakPerfect, great: $breakGreat, good: $breakGood, miss: $breakMiss)
-
-                // Break score input
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("BREAK 总分 (可选)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("2600", text: $breakScore)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(maxWidth: 200)
-                }
-                .padding(.horizontal)
-
-                // Calculate button
-                Button {
-                    calculate()
-                } label: {
-                    Text("计算")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .padding(.horizontal)
-
-                // Result
-                if let result = resultText {
-                    Text(result)
-                        .font(.title3.bold())
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                }
-
-                if let error = errorMessage {
-                    Text(error)
-                        .foregroundStyle(.red)
-                        .font(.caption)
-                }
+                breakScoreInput
+                calculateButton
+                resultView
+                errorView
             }
             .padding(.vertical)
         }
@@ -91,12 +46,53 @@ struct FinaleToDxView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    // MARK: - Note Section
+    private var breakScoreInput: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("BREAK 总分 (可选)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            TextField("2600", text: $breakScore)
+                .keyboardType(.numberPad)
+                .textFieldStyle(.roundedBorder)
+                .frame(maxWidth: 200)
+        }
+        .padding(.horizontal)
+    }
 
-    private func noteSection(
-        title: String, icon: String, color: Color,
-        perfect: Binding<String>, great: Binding<String>, good: Binding<String>, miss: Binding<String>
-    ) -> some View {
+    private var calculateButton: some View {
+        Button {
+            calculate()
+        } label: {
+            Text("计算")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .padding(.horizontal)
+    }
+
+    @ViewBuilder
+    private var resultView: some View {
+        if let result = resultText {
+            Text(result)
+                .font(.title3.bold())
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+                .padding(.horizontal)
+        }
+    }
+
+    @ViewBuilder
+    private var errorView: some View {
+        if let error = errorMessage {
+            Text(error)
+                .foregroundStyle(.red)
+                .font(.caption)
+        }
+    }
+
+    private func noteSection(title: String, icon: String, color: Color, state: Binding<NoteSectionState>) -> some View {
         VStack(spacing: 8) {
             HStack {
                 Image(systemName: icon)
@@ -108,10 +104,10 @@ struct FinaleToDxView: View {
             .padding(.horizontal)
 
             HStack(spacing: 8) {
-                judgementField(label: "Perfect", text: perfect)
-                judgementField(label: "Great", text: great)
-                judgementField(label: "Good", text: good)
-                judgementField(label: "Miss", text: miss)
+                judgementField(label: "Perfect", text: state.perfect)
+                judgementField(label: "Great", text: state.great)
+                judgementField(label: "Good", text: state.good)
+                judgementField(label: "Miss", text: state.miss)
             }
             .padding(.horizontal)
         }
@@ -136,48 +132,30 @@ struct FinaleToDxView: View {
         errorMessage = nil
         resultText = nil
 
-        let tp = Int(tapPerfect) ?? 0
-        let tg = Int(tapGreat) ?? 0
-        let tgd = Int(tapGood) ?? 0
-        let tm = Int(tapMiss) ?? 0
-
-        let hp = Int(holdPerfect) ?? 0
-        let hg = Int(holdGreat) ?? 0
-        let hgd = Int(holdGood) ?? 0
-        let hm = Int(holdMiss) ?? 0
-
-        let sp = Int(slidePerfect) ?? 0
-        let sg = Int(slideGreat) ?? 0
-        let sgd = Int(slideGood) ?? 0
-        let sm = Int(slideMiss) ?? 0
-
-        let bp = Int(breakPerfect) ?? 0
-        let bg = Int(breakGreat) ?? 0
-        let bgd = Int(breakGood) ?? 0
-        let bm = Int(breakMiss) ?? 0
+        let tap = tap.counts
+        let hold = hold.counts
+        let slide = slide.counts
+        let breakNotes = breakNotes.counts
         let bs = Int(breakScore) ?? 0
 
-        let tapCount = tp + tg + tgd + tm
-        let holdCount = hp + hg + hgd + hm
-        let slideCount = sp + sg + sgd + sm
-        let breakCount = bp + bg + bgd + bm
-
-        guard tapCount + holdCount + slideCount + breakCount > 0 else {
+        guard tap.total + hold.total + slide.total + breakNotes.total > 0 else {
             errorMessage = "请至少输入一组 note 数量"
             return
         }
 
-        let dxTotalScore = tapCount * 10 + holdCount * 20 + slideCount * 30 + breakCount * 50
+        let dxTotalScore = tap.total * 10 + hold.total * 20 + slide.total * 30 + breakNotes.total * 50
 
-        let dxPlayMaxScore = tp * 10 + tg * 8 + tgd * 5 +
-            hp * 20 + hg * 16 + hgd * 10 +
-            sp * 30 + sg * 24 + sgd * 15 +
-            bp * 50 + bg * 40 + bgd * 20
+        let dxPlayMaxScore =
+            tap.perfect * 10 + tap.great * 8 + tap.good * 5 +
+            hold.perfect * 20 + hold.great * 16 + hold.good * 10 +
+            slide.perfect * 30 + slide.great * 24 + slide.good * 15 +
+            breakNotes.perfect * 50 + breakNotes.great * 40 + breakNotes.good * 20
 
-        let dxPlayMinScore = tp * 10 + tg * 8 + tgd * 5 +
-            hp * 20 + hg * 16 + hgd * 10 +
-            sp * 30 + sg * 24 + sgd * 15 +
-            bp * 50 + bg * 25 + bgd * 20
+        let dxPlayMinScore =
+            tap.perfect * 10 + tap.great * 8 + tap.good * 5 +
+            hold.perfect * 20 + hold.great * 16 + hold.good * 10 +
+            slide.perfect * 30 + slide.great * 24 + slide.good * 15 +
+            breakNotes.perfect * 50 + breakNotes.great * 25 + breakNotes.good * 20
 
         guard dxTotalScore > 0 else {
             errorMessage = "总 note 数不能为 0"
@@ -185,33 +163,33 @@ struct FinaleToDxView: View {
         }
 
         if bs == 0 {
-            // No break score provided — show range
-            guard breakCount > 0 else {
+            guard breakNotes.total > 0 else {
                 errorMessage = "请输入 BREAK 数量"
                 return
             }
+            let breakRatio = 1.0 / Double(breakNotes.total)
             let dxMaxScore = Double(dxPlayMaxScore) / Double(dxTotalScore) * 100.0
-                + Double(bp) / Double(breakCount) * 1.0
-                + Double(bg) / Double(breakCount) * 0.4
-                + Double(bgd) / Double(breakCount) * 0.3
+                + Double(breakNotes.perfect) * breakRatio * 1.0
+                + Double(breakNotes.great) * breakRatio * 0.4
+                + Double(breakNotes.good) * breakRatio * 0.3
 
             let dxMinScore = Double(dxPlayMinScore) / Double(dxTotalScore) * 100.0
-                + Double(bp) / Double(breakCount) * 0.5
-                + Double(bg) / Double(breakCount) * 0.4
-                + Double(bgd) / Double(breakCount) * 0.3
+                + Double(breakNotes.perfect) * breakRatio * 0.5
+                + Double(breakNotes.great) * breakRatio * 0.4
+                + Double(breakNotes.good) * breakRatio * 0.3
 
             resultText = String(format: "达成率: %.4f%% ~ %.4f%%", dxMinScore, dxMaxScore)
         } else {
-            // Break score provided — validate and compute exact value
-            if bg > 0 || bgd > 0 || bm > 0 || bp * 2600 < bs || bp * 2500 > bs {
+            if breakNotes.great > 0 || breakNotes.good > 0 || breakNotes.miss > 0
+                || breakNotes.perfect * 2600 < bs || breakNotes.perfect * 2500 > bs {
                 errorMessage = "绝赞数据错误，请重新填写"
                 return
             }
-            guard breakCount > 0 else {
+            guard breakNotes.total > 0 else {
                 errorMessage = "请输入 BREAK 数量"
                 return
             }
-            let dxBreakScore = 1.0 - 0.25 * Double(breakCount * 2600 - bs) / 50.0 / Double(breakCount)
+            let dxBreakScore = 1.0 - 0.25 * Double(breakNotes.total * 2600 - bs) / 50.0 / Double(breakNotes.total)
             let dxCurrentScore = Double(dxPlayMaxScore) / Double(dxTotalScore) * 100.0 + dxBreakScore
 
             resultText = String(format: "达成率: %.4f%%", dxCurrentScore)

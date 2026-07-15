@@ -9,30 +9,9 @@ use tracing::{debug, error, info};
 use crate::config::AppState;
 use crate::oauth;
 
-/// Handle a plaintext SOCKS5 connection.
-pub async fn handle_plaintext(
-    socket: tokio::net::TcpStream,
-    _peer_addr: SocketAddr,
-    state: &Arc<AppState>,
-) -> Result<(), SocksError> {
-    serve_socks5(socket, state).await
-}
-
-/// Handle a TLS-wrapped SOCKS5 connection.
-pub async fn handle_tls<S>(
-    socket: S,
-    _peer_addr: SocketAddr,
-    state: &Arc<AppState>,
-) -> Result<(), SocksError>
-where
-    S: AsyncRead + AsyncWrite + Unpin,
-{
-    serve_socks5(socket, state).await
-}
-
 /// Core SOCKS5 serve loop using fast-socks5. Generic over the stream type so
 /// it works for both plaintext TcpStream and TLS-wrapped streams.
-async fn serve_socks5<S>(socket: S, state: &Arc<AppState>) -> Result<(), SocksError>
+pub(super) async fn serve_socks5<S>(socket: S, state: &Arc<AppState>) -> Result<(), SocksError>
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {

@@ -66,16 +66,14 @@ enum MaimaiDataService {
         // (`{"jwt_token": "..."}`) instead of (or in addition to) the
         // Set-Cookie header. Build a "jwt_token=..." cookie in that case so
         // downstream code can stay simple.
-        if let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-           let token = body["jwt_token"] as? String, !token.isEmpty {
+        if let token = jwtToken(from: data), !token.isEmpty {
             print("DEBUG login: got jwt_token from body")
             return "jwt_token=\(token)"
         }
 
         // 1. Try `Set-Cookie` directly. URLSession sometimes returns it via
         // `allHeaderFields` even when `value(forHTTPHeaderField:)` returns nil.
-        if let cookie = httpResponse.value(forHTTPHeaderField: "Set-Cookie"),
-           !cookie.isEmpty {
+        if let cookie = httpResponse.value(forHTTPHeaderField: "Set-Cookie"), !cookie.isEmpty {
             print("DEBUG login: got cookie from value(forHTTPHeaderField)")
             return cookie
         }
@@ -91,13 +89,16 @@ enum MaimaiDataService {
         // from the cookie storage.
         if let cookies = storage.cookies(for: url), !cookies.isEmpty {
             print("DEBUG login: got cookie from storage")
-            return cookies
-                .map { "\($0.name)=\($0.value)" }
-                .joined(separator: "; ")
+            return cookies.map { "\($0.name)=\($0.value)" }.joined(separator: "; ")
         }
 
         print("DEBUG login: NO COOKIE FOUND")
         return ""
+    }
+
+    private static func jwtToken(from data: Data) -> String? {
+        guard let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        return body["jwt_token"] as? String
     }
 
     static func records(cookie: String) async throws -> Data {

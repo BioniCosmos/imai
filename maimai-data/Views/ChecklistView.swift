@@ -80,7 +80,7 @@ struct ChecklistView: View {
                 Button {
                     displayMode = (displayMode + 1) % 3
                 } label: {
-                    Image(systemName: displayModeIcon)
+                    Image(systemName: displayModeIcon(displayMode))
                 }
             }
         }
@@ -169,74 +169,8 @@ struct ChecklistView: View {
         .buttonStyle(.plain)
     }
 
-    @ViewBuilder
     private func recordMark(for record: Record) -> some View {
-        switch displayMode {
-        case 0:
-            Text(record.rate)
-                .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 3)
-                .background(rateColor(record.rate))
-                .cornerRadius(3)
-        case 1:
-            Text(record.fc)
-                .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 3)
-                .background(fcColor(record.fc))
-                .cornerRadius(3)
-        case 2:
-            Text(record.fs)
-                .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 3)
-                .background(fsColor(record.fs))
-                .cornerRadius(3)
-        default:
-            EmptyView()
-        }
-    }
-
-    private var displayModeIcon: String {
-        switch displayMode {
-        case 0: return "star"
-        case 1: return "music.note"
-        case 2: return "sparkles"
-        default: return "star"
-        }
-    }
-
-    private func rateColor(_ rate: String) -> Color {
-        switch rate {
-        case "sssp": return .yellow
-        case "sss": return .orange
-        case "ssp": return .pink
-        case "ss": return .red
-        case "sp": return .purple
-        case "s": return .blue
-        default: return .gray
-        }
-    }
-
-    private func fcColor(_ fc: String) -> Color {
-        switch fc {
-        case "app": return .yellow
-        case "ap": return .orange
-        case "fcp": return .green
-        case "fc": return .blue
-        default: return .gray
-        }
-    }
-
-    private func fsColor(_ fs: String) -> Color {
-        switch fs {
-        case "fsdp": return .yellow
-        case "fsd": return .orange
-        case "fsp": return .green
-        case "fs": return .blue
-        default: return .gray
-        }
+        RecordMark(record: record, displayMode: displayMode)
     }
 
     // MARK: - Data
@@ -254,25 +188,23 @@ struct ChecklistView: View {
     }
 
     private func updateGroupedData() {
-        var items: [DsSongData] = []
-        for song in songs {
-            guard let charts = try? dataManager.charts(for: song.id) else { continue }
-            for (index, chart) in charts.enumerated() {
-                if chart.level == selectedLevel {
-                    items.append(DsSongData(
+        let items = songs.flatMap { song in
+            (try? dataManager.charts(for: song.id))?
+                .enumerated()
+                .filter { $0.element.level == selectedLevel }
+                .map { index, chart in
+                    DsSongData(
                         songId: song.id,
                         title: song.title,
                         type: song.type,
                         imageUrl: song.imageUrl,
                         levelIndex: index,
                         ds: chart.ds
-                    ))
-                }
-            }
+                    )
+                } ?? []
         }
-        items.sort { $0.ds > $1.ds }
-        let grouped = Dictionary(grouping: items, by: { $0.ds })
-        groupedData = grouped.map { (ds: $0.key, items: $0.value) }
+        groupedData = Dictionary(grouping: items, by: { $0.ds })
+            .map { (ds: $0.key, items: $0.value) }
             .sorted { $0.ds > $1.ds }
     }
 }

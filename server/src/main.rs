@@ -30,20 +30,17 @@ async fn main() -> Result<(), anyhow::Error> {
     let state = AppState::new(&config.database_url).await?;
     tracing::info!("database connected, migrations applied");
 
-    let api_router = api::router(state.clone());
     let api_addr: SocketAddr = config.api_listen_addr.parse()?;
     tracing::info!("API server listening on {}", api_addr);
 
-    let proxy_state = state.clone();
     let proxy_addr: SocketAddr = config.proxy_listen_addr.parse()?;
-    let proxy_config = config.clone();
 
     let (api_res, proxy_res) = tokio::join!(
         axum::serve(
             TcpListener::bind(api_addr).await?,
-            api_router.into_make_service_with_connect_info::<SocketAddr>(),
+            api::router(state.clone()).into_make_service_with_connect_info::<SocketAddr>(),
         ),
-        proxy::serve(proxy_addr, proxy_config, proxy_state),
+        proxy::serve(proxy_addr, config.clone(), state),
     );
 
     api_res?;

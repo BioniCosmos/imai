@@ -8,10 +8,10 @@ enum JsonConvertToDb {
     }
 
     static func convertChartStats(_ response: ChartsResponse) -> [ChartStats] {
-        response.charts.flatMap { key, value in
-            value.enumerated().map { index, data in
+        response.charts.flatMap { songId, charts in
+            charts.enumerated().map { index, data in
                 ChartStats(
-                    songId: Int(key) ?? 0,
+                    songId: Int(songId) ?? 0,
                     cnt: data.cnt,
                     diff: data.diff,
                     levelIndex: index,

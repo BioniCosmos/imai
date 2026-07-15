@@ -47,7 +47,7 @@ enum SongSearcher {
             // Level: at least one chart has this level (optionally restricted
             // to the sequencing difficulty type).
             if let level = filter.selectedLevel {
-                let sequencingType = difficultyPrefix(for: filter.sequencing)
+                let sequencingType = filter.sequencing.flatMap(difficultyPrefix)
                 let charts = chartsBySong[song.id] ?? []
                 let hasLevel = charts.contains { chart in
                     if level != "ALL", chart.level != level { return false }
@@ -94,30 +94,21 @@ enum SongSearcher {
         }
 
         // Sorting
-        if let sequencing = filter.sequencing, sequencing != "默认排序" {
-            switch sequencing {
-            case "EXPERT-升序":
-                return result.sorted { dsFor($0, .expert, chartsBySong) < dsFor($1, .expert, chartsBySong) }
-            case "EXPERT-降序":
-                return result.sorted { dsFor($0, .expert, chartsBySong) > dsFor($1, .expert, chartsBySong) }
-            case "MASTER-升序":
-                return result.sorted { dsFor($0, .master, chartsBySong) < dsFor($1, .master, chartsBySong) }
-            case "MASTER-降序":
-                return result.sorted { dsFor($0, .master, chartsBySong) > dsFor($1, .master, chartsBySong) }
-            case "RE:MASTER-升序":
-                return result.sorted { remasterValue($0, chartsBySong) < remasterValue($1, chartsBySong) }
-            case "RE:MASTER-降序":
-                return result.sorted { remasterValue($0, chartsBySong) > remasterValue($1, chartsBySong) }
-            default:
-                return result.sorted { $0.id > $1.id }
-            }
-        } else {
+        guard let sequencing = filter.sequencing, sequencing != "默认排序" else {
             return result.sorted { $0.id > $1.id }
         }
+
+        let ascending = sequencing.hasSuffix("升序")
+        let value: (SongData) -> Double = {
+            if sequencing.hasPrefix("RE:MASTER") {
+                return remasterValue($0, chartsBySong)
+            }
+            return dsFor($0, difficultyPrefix(for: sequencing) ?? .unknown, chartsBySong)
+        }
+        return result.sorted { ascending ? value($0) < value($1) : value($0) > value($1) }
     }
 
-    private static func difficultyPrefix(for sequencing: String?) -> DifficultyType? {
-        guard let sequencing else { return nil }
+    private static func difficultyPrefix(for sequencing: String) -> DifficultyType? {
         if sequencing.hasPrefix("EXPERT") { return .expert }
         if sequencing.hasPrefix("MASTER") { return .master }
         if sequencing.hasPrefix("RE:MASTER") { return .remaster }
@@ -129,10 +120,6 @@ enum SongSearcher {
     }
 
     private static func remasterValue(_ song: SongData, _ chartsBySong: [Int: [ChartSummary]]) -> Double {
-        let charts = chartsBySong[song.id] ?? []
-        guard let remaster = charts.first(where: { $0.difficultyType == .remaster }) else {
-            return -1
-        }
-        return remaster.ds
+        chartsBySong[song.id]?.first { $0.difficultyType == .remaster }?.ds ?? -1
     }
 }

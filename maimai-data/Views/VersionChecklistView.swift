@@ -74,7 +74,7 @@ struct VersionChecklistView: View {
                 Button {
                     displayMode = (displayMode + 1) % 3
                 } label: {
-                    Image(systemName: displayModeIcon)
+                    Image(systemName: displayModeIcon(displayMode))
                 }
             }
         }
@@ -150,74 +150,8 @@ struct VersionChecklistView: View {
         .buttonStyle(.plain)
     }
 
-    @ViewBuilder
     private func recordMark(for record: Record) -> some View {
-        switch displayMode {
-        case 0:
-            Text(record.rate)
-                .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 3)
-                .background(rateColor(record.rate))
-                .cornerRadius(3)
-        case 1:
-            Text(record.fc)
-                .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 3)
-                .background(fcColor(record.fc))
-                .cornerRadius(3)
-        case 2:
-            Text(record.fs)
-                .font(.system(size: 8, weight: .bold))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 3)
-                .background(fsColor(record.fs))
-                .cornerRadius(3)
-        default:
-            EmptyView()
-        }
-    }
-
-    private var displayModeIcon: String {
-        switch displayMode {
-        case 0: return "star"
-        case 1: return "music.note"
-        case 2: return "sparkles"
-        default: return "star"
-        }
-    }
-
-    private func rateColor(_ rate: String) -> Color {
-        switch rate {
-        case "sssp": return .yellow
-        case "sss": return .orange
-        case "ssp": return .pink
-        case "ss": return .red
-        case "sp": return .purple
-        case "s": return .blue
-        default: return .gray
-        }
-    }
-
-    private func fcColor(_ fc: String) -> Color {
-        switch fc {
-        case "app": return .yellow
-        case "ap": return .orange
-        case "fcp": return .green
-        case "fc": return .blue
-        default: return .gray
-        }
-    }
-
-    private func fsColor(_ fs: String) -> Color {
-        switch fs {
-        case "fsdp": return .yellow
-        case "fsd": return .orange
-        case "fsp": return .green
-        case "fs": return .blue
-        default: return .gray
-        }
+        RecordMark(record: record, displayMode: displayMode)
     }
 
     // MARK: - Data
@@ -238,20 +172,13 @@ struct VersionChecklistView: View {
 
     private func updateGroupedData() {
         let versionSongs = songs.filter { $0.from == selectedVersion }
-        // Pre-fetch all charts for the filtered songs in one pass
-        var songWithMasterLevel: [(song: SongData, level: String)] = []
-        for song in versionSongs {
-            if let charts = try? dataManager.charts(for: song.id),
-               let masterChart = charts.first(where: { $0.difficultyType.index == 3 }) {
-                songWithMasterLevel.append((song: song, level: masterChart.level))
-            }
+        let songWithMasterLevel: [(song: SongData, level: String, ds: Double)] = versionSongs.compactMap { song in
+            guard let masterChart = (try? dataManager.charts(for: song.id))?
+                .first(where: { $0.difficultyType.index == 3 }) else { return nil }
+            return (song: song, level: masterChart.level, ds: masterChart.ds)
         }
-        songWithMasterLevel.sort { a, b in
-            let dsA = (try? dataManager.charts(for: a.song.id).first(where: { $0.difficultyType.index == 3 })?.ds) ?? 0
-            let dsB = (try? dataManager.charts(for: b.song.id).first(where: { $0.difficultyType.index == 3 })?.ds) ?? 0
-            return dsA > dsB
-        }
-        let grouped = Dictionary(grouping: songWithMasterLevel, by: { $0.level })
+        let sorted = songWithMasterLevel.sorted { $0.ds > $1.ds }
+        let grouped = Dictionary(grouping: sorted, by: { $0.level })
         let levelOrder = SongFilter.allLevels
         groupedSongs = grouped.map { (level: $0.key, songs: $0.value.map(\.song)) }
             .sorted { a, b in

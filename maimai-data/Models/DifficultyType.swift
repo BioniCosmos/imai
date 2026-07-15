@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 
 enum DifficultyType: String, Codable, CaseIterable, Identifiable {
     case basic = "BASIC"
@@ -35,6 +35,18 @@ enum DifficultyType: String, Codable, CaseIterable, Identifiable {
         case .utage: return 0
         case .utagePlayer2: return 1
         case .unknown: return -1
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .basic: return .basic
+        case .advanced: return .advanced
+        case .expert: return .expert
+        case .master: return .master
+        case .remaster: return .remaster
+        case .utage, .utagePlayer2: return .levelUtage
+        case .unknown: return .gray
         }
     }
 }

@@ -25,12 +25,9 @@ struct SearchFilterView: View {
                                 title: genre,
                                 isSelected: filter.selectedGenres.contains(genre)
                             ) {
-                                if filter.selectedGenres.contains(genre) {
-                                    filter.selectedGenres.remove(genre)
-                                } else {
-                                    filter.selectedGenres.insert(genre)
-                                }
+                                filter.selectedGenres.toggle(genre)
                             }
+
                         }
                     }
                 }
@@ -42,11 +39,7 @@ struct SearchFilterView: View {
                                 title: version,
                                 isSelected: filter.selectedVersions.contains(version)
                             ) {
-                                if filter.selectedVersions.contains(version) {
-                                    filter.selectedVersions.remove(version)
-                                } else {
-                                    filter.selectedVersions.insert(version)
-                                }
+                                filter.selectedVersions.toggle(version)
                             }
                         }
                     }
@@ -161,6 +154,16 @@ struct FlowLayout: Layout {
             }
 
             self.size = CGSize(width: maxWidth, height: y + lineHeight)
+        }
+    }
+}
+
+private extension Set {
+    mutating func toggle(_ element: Element) {
+        if contains(element) {
+            remove(element)
+        } else {
+            insert(element)
         }
     }
 }

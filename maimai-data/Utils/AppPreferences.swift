@@ -51,7 +51,10 @@ enum AppPreferences {
                   let array = try? JSONDecoder().decode([[String: String]].self, from: data) else {
                 return []
             }
-            return array.compactMap { ($0["username"], $0["password"]) as? (String, String) }
+            return array.compactMap { entry in
+                guard let username = entry["username"], let password = entry["password"] else { return nil }
+                return (username, password)
+            }
         }
         set {
             let array = newValue.map { ["username": $0.username, "password": $0.password] }
@@ -138,7 +141,9 @@ enum AppPreferences {
         var history = searchHistory
         history.removeAll { $0 == query }
         history.insert(query, at: 0)
-        if history.count > 30 { history.removeLast() }
+        if history.count > 30 {
+            history.removeLast()
+        }
         searchHistory = history
     }
 

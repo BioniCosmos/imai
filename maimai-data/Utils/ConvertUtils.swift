@@ -33,31 +33,6 @@ enum ConvertUtils {
     }
 
     static func levelText(from level: String) -> String {
-        switch level {
-        case "LEVEL 1": return "1"
-        case "LEVEL 2": return "2"
-        case "LEVEL 3": return "3"
-        case "LEVEL 4": return "4"
-        case "LEVEL 5": return "5"
-        case "LEVEL 6": return "6"
-        case "LEVEL 7": return "7"
-        case "LEVEL 7+": return "7+"
-        case "LEVEL 8": return "8"
-        case "LEVEL 8+": return "8+"
-        case "LEVEL 9": return "9"
-        case "LEVEL 9+": return "9+"
-        case "LEVEL 10": return "10"
-        case "LEVEL 10+": return "10+"
-        case "LEVEL 11": return "11"
-        case "LEVEL 11+": return "11+"
-        case "LEVEL 12": return "12"
-        case "LEVEL 12+": return "12+"
-        case "LEVEL 13": return "13"
-        case "LEVEL 13+": return "13+"
-        case "LEVEL 14": return "14"
-        case "LEVEL 14+": return "14+"
-        case "LEVEL 15": return "15"
-        default: return "0"
-        }
+        level.hasPrefix("LEVEL ") ? String(level.dropFirst(6)) : "0"
     }
 }

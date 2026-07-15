@@ -126,24 +126,12 @@ struct ChartRow: View {
     let chart: Chart
     let record: Record?
 
-    private var difficultyColor: Color {
-        switch chart.difficultyType {
-        case .basic: return .basic
-        case .advanced: return .advanced
-        case .expert: return .expert
-        case .master: return .master
-        case .remaster: return .remaster
-        case .utage, .utagePlayer2: return .levelUtage
-        case .unknown: return .gray
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(chart.difficultyType.title)
                     .font(.subheadline.bold())
-                    .foregroundStyle(difficultyColor)
+                    .foregroundStyle(chart.difficultyType.color)
 
                 Spacer()
 

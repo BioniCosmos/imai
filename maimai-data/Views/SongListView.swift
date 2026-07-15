@@ -149,16 +149,9 @@ struct SongRow: View {
 
 extension SongFilter {
     var isActive: Bool {
-        !searchText.isEmpty ||
-        !selectedGenres.isEmpty ||
-        !selectedVersions.isEmpty ||
-        selectedLevel != nil ||
-        sequencing != nil ||
-        ds != nil ||
-        favoritesOnly ||
-        !matchAlias ||
-        matchCharter ||
-        !matchSongId
+        !searchText.isEmpty || !selectedGenres.isEmpty || !selectedVersions.isEmpty
+            || selectedLevel != nil || sequencing != nil || ds != nil || favoritesOnly
+            || !matchAlias || matchCharter || !matchSongId
     }
 }
 

@@ -13,17 +13,11 @@ struct ProberView: View {
     /// `level = ds * 10` and `achievement = achievements * 10000` — i.e. it
     /// recomputes RA per record rather than summing the precomputed `ra`
     /// field, which can drift slightly. We do the same.
-    private var oldRating: Int {
-        oldRecords.reduce(0) { sum, record in
-            sum + ConvertUtils.achievementToRating(
-                level: Int(record.ds * 10),
-                achievement: Int(record.achievements * 10000)
-            )
-        }
-    }
+    private var oldRating: Int { ratingSum(for: oldRecords) }
+    private var newRating: Int { ratingSum(for: newRecords) }
 
-    private var newRating: Int {
-        newRecords.reduce(0) { sum, record in
+    private func ratingSum(for records: [Record]) -> Int {
+        records.reduce(0) { sum, record in
             sum + ConvertUtils.achievementToRating(
                 level: Int(record.ds * 10),
                 achievement: Int(record.achievements * 10000)
@@ -178,17 +172,19 @@ struct ProberView: View {
             // are ignored for the split (matches Android behavior).
             let isNewMap = (try? dataManager.isNewMap()) ?? [:]
             let sorted = newRecordModels.sorted { $0.ra > $1.ra }
-
-            let old = sorted.filter { record in
-                guard let isNew = isNewMap[record.songId] else { return false }
-                return !isNew
+            var old = [Record]()
+            var new = [Record]()
+            for record in sorted {
+                guard let isNew = isNewMap[record.songId] else { continue }
+                if isNew {
+                    if new.count < 15 { new.append(record) }
+                } else {
+                    if old.count < 35 { old.append(record) }
+                }
             }
-            let new = sorted.filter { record in
-                isNewMap[record.songId] == true
-            }
 
-            oldRecords = Array(old.prefix(35))
-            newRecords = Array(new.prefix(15))
+            oldRecords = old
+            newRecords = new
         } catch {
             print("DEBUG loadRecords: catch error=\(error)")
             errorMessage = "请求记录失败: \(error.localizedDescription)"
