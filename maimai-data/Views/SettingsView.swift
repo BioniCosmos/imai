@@ -58,6 +58,14 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("数据上传") {
+                    NavigationLink {
+                        WeChatUpdateView()
+                    } label: {
+                        Label("上传成绩到水鱼", systemImage: "arrow.up.doc")
+                    }
+                }
+
                 Section("工具") {
                     NavigationLink {
                         VersionChecklistView()
